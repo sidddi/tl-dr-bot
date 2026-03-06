@@ -1,7 +1,10 @@
-import os
 import re
+import base64
 from datetime import datetime
-from config import OBSIDIAN_VAULT_PATH
+import requests
+from config import GITHUB_TOKEN, GITHUB_VAULT_REPO, GITHUB_VAULT_BASE_PATH
+
+GITHUB_API = "https://api.github.com"
 
 
 def _slugify(text: str) -> str:
@@ -9,6 +12,23 @@ def _slugify(text: str) -> str:
     text = re.sub(r"[^\w\s-]", "", text)
     text = re.sub(r"[\s_-]+", "-", text)
     return text.strip("-")[:80]
+
+
+def _github_headers() -> dict:
+    return {
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json",
+    }
+
+
+def _get_file_sha(path: str) -> str | None:
+    r = requests.get(
+        f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{path}",
+        headers=_github_headers(),
+    )
+    if r.status_code == 200:
+        return r.json().get("sha")
+    return None
 
 
 def write_note(url: str, summary: dict) -> str:
@@ -45,14 +65,25 @@ source: "{url}"
 """
 
     content = frontmatter + "\n" + body
-
-    subfolder = category if worth_reading else "Basura"  # always Basura if not worth reading
-    folder = os.path.join(OBSIDIAN_VAULT_PATH, subfolder)
-    os.makedirs(folder, exist_ok=True)
+    subfolder = category if worth_reading else "Basura"
     filename = f"{date_str}-{_slugify(title)}.md"
-    filepath = os.path.join(folder, filename)
+    path = f"{GITHUB_VAULT_BASE_PATH}/{subfolder}/{filename}"
 
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(content)
+    encoded = base64.b64encode(content.encode("utf-8")).decode("utf-8")
+    sha = _get_file_sha(path)
 
-    return filepath
+    payload = {
+        "message": f"add: {title}",
+        "content": encoded,
+    }
+    if sha:
+        payload["sha"] = sha
+
+    r = requests.put(
+        f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{path}",
+        headers=_github_headers(),
+        json=payload,
+    )
+    r.raise_for_status()
+
+    return path

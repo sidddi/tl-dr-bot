@@ -37,20 +37,38 @@ pip install -r requirements.txt
 
 ## Configuración
 
-Crea un archivo `.env` en la raíz del proyecto:
+Crea un archivo `.env` en la raíz del proyecto (o configura las variables en Railway):
 
 ```env
 TELEGRAM_TOKEN=7123456789:AAFxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ANTHROPIC_API_KEY=sk-ant-api03-...
-OBSIDIAN_VAULT_PATH=/Users/tu-usuario/obsidian/TL-DR
+
+# GitHub — el bot escribe las notas directamente en tu vault repo
+GITHUB_TOKEN=ghp_...
+GITHUB_VAULT_REPO=tu-usuario/tu-vault-repo
+GITHUB_VAULT_BASE_PATH=04_Sources   # ruta dentro del repo (opcional, default: 04_Sources)
 ```
 
-## Uso
+### Cómo obtener el GitHub Token
+
+GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens → New token
+Permisos necesarios: **Contents** → Read and write (solo en el repo del vault)
+
+## Uso local
 
 ```bash
 source .env  # o exporta las variables manualmente
 python main.py
 ```
+
+## Deploy en Railway
+
+1. Entra en [railway.app](https://railway.app) → New Project → Deploy from GitHub repo
+2. Selecciona `tl-dr-bot`
+3. En Variables, añade las 5 variables de entorno del `.env`
+4. Railway detecta automáticamente que es Python y arranca `python main.py`
+
+El bot queda corriendo 24/7 sin necesitar tu ordenador.
 
 Abre Telegram, busca tu bot y mándale cualquier URL.
 
