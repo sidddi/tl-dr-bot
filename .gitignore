@@ -1,0 +1,23 @@
+# Secrets
+.env
+.env.sh
+*.env
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Obsidian vault files
+*.md
+!README.md
+.obsidian/
+
+# macOS
+.DS_Store
