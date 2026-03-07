@@ -12,9 +12,9 @@ Bot de Telegram que recibe cualquier URL (artículos, hilos de Twitter/X, blogs)
 
 ### Categorías
 
-`Agents` · `MCP` · `LLMs` · `Tools` · `Carrera` · `Tutorials` · `Basura`
+Las categorías son personalizadas por cada usuario con `python setup.py`. Claude propone categorías con nombre y descripción según tus intereses, o puedes definirlas a mano.
 
-Los artículos que no valen la pena se guardan en `Basura/` automáticamente.
+`Basura` se añade siempre automáticamente para artículos que no aportan valor.
 
 ## Requisitos
 
@@ -57,15 +57,19 @@ Permisos necesarios: **Contents** → Read and write (solo en el repo del vault)
 
 ## Configuración de categorías
 
-Ejecuta el script de setup para definir tus categorías temáticas:
+Ejecuta el script de setup antes de arrancar el bot:
 
 ```bash
 python setup.py
 ```
 
-Te pedirá las categorías separadas por comas (ej: `AI, Producto, Negocios, Tutoriales`). Las guarda en `config.json` (no se sube a git). `Basura` se añade siempre automáticamente como fallback.
+El flujo es conversacional:
+1. Te pregunta sobre qué temas quieres aprender
+2. Claude propone 6-8 categorías con nombre y descripción
+3. Puedes aceptarlas (`s`), pedir nuevas propuestas (`n`), o definirlas a mano (`m`)
+4. Se guardan en `config.json` (no se sube a git)
 
-Si no ejecutas setup, el bot usa las categorías por defecto: `Agents, MCP, LLMs, Tools, Carrera, Tutorials, Basura`.
+Las descripciones son clave: Claude las usa para saber exactamente qué artículos van a cada categoría. Si no ejecutas setup, el bot usa unas categorías por defecto orientadas a IA.
 
 ## Uso local
 
