@@ -37,52 +37,31 @@ pip install -r requirements.txt
 
 ## Configuración
 
-Crea un archivo `.env` en la raíz del proyecto (o configura las variables en Railway):
-
-```env
-TELEGRAM_TOKEN=7123456789:AAFxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-ANTHROPIC_API_KEY=sk-ant-api03-...
-
-# GitHub — el bot escribe las notas directamente en tu vault repo
-GITHUB_TOKEN=ghp_...
-GITHUB_VAULT_REPO=tu-usuario/tu-vault-repo
-GITHUB_VAULT_BASE_PATH=04_Sources   # ruta dentro del repo (opcional, default: 04_Sources)
-```
-
-### Cómo obtener el GitHub Token
-
-GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens → New token
-
-Permisos necesarios: **Contents** → Read and write (solo en el repo del vault)
-
-## Configuración de categorías
-
-Ejecuta el script de setup antes de arrancar el bot:
+Ejecuta el script de setup — te guía paso a paso por todo:
 
 ```bash
 python setup.py
 ```
 
-El flujo es conversacional:
-1. Te pregunta sobre qué temas quieres aprender
-2. Claude propone 6-8 categorías con nombre y descripción
-3. Puedes aceptarlas (`s`), pedir nuevas propuestas (`n`), o definirlas a mano (`m`)
-4. Se guardan en `config.json` (no se sube a git)
+El setup hace dos cosas:
 
-Las descripciones son clave: Claude las usa para saber exactamente qué artículos van a cada categoría. Si no ejecutas setup, el bot usa unas categorías por defecto orientadas a IA.
+**1. Credenciales** — te pide las 5 variables necesarias y las guarda en `.env` (no se sube a git):
+- `TELEGRAM_TOKEN` — token del bot (BotFather → `/newbot`)
+- `ANTHROPIC_API_KEY` — API key de Anthropic
+- `GITHUB_TOKEN` — fine-grained token con permiso **Contents → Read and write** sobre el repo del vault
+- `GITHUB_VAULT_REPO` — repo de Obsidian (ej: `usuario/obsidian`)
+- `GITHUB_VAULT_BASE_PATH` — carpeta base dentro del repo (ej: `TL-DR`)
+
+**2. Categorías** — te pregunta sobre qué temas quieres aprender, Claude propone 6-8 categorías con nombre y descripción, y puedes aceptarlas, pedir nuevas, o definirlas a mano. Se guardan en `config.json` (no se sube a git).
+
+Las descripciones son clave: Claude las usa para clasificar correctamente cada artículo.
 
 ## Uso local
 
 > ⚠️ Solo puede haber una instancia corriendo a la vez. Si el bot está en Railway, no lo arranques en local.
 
 ```bash
-export TELEGRAM_TOKEN=...
-export ANTHROPIC_API_KEY=...
-export GITHUB_TOKEN=...
-export GITHUB_VAULT_REPO=tu-usuario/obsidian
-export GITHUB_VAULT_BASE_PATH=TL-DR
-
-python setup.py   # primera vez
+python setup.py   # primera vez (o para cambiar configuración)
 python main.py
 ```
 

@@ -3,6 +3,65 @@ import os
 import anthropic
 
 CONFIG_FILE = "config.json"
+ENV_FILE = ".env"
+
+
+def _ask(prompt: str, secret: bool = False) -> str:
+    value = input(prompt).strip()
+    return value
+
+
+def _setup_credentials() -> dict:
+    print("Necesito tus credenciales para configurar el bot.\n")
+
+    existing = {}
+    if os.path.exists(ENV_FILE):
+        with open(ENV_FILE) as f:
+            for line in f:
+                line = line.strip()
+                if "=" in line and not line.startswith("#"):
+                    k, v = line.split("=", 1)
+                    existing[k.strip()] = v.strip()
+
+    def ask_with_default(prompt, key):
+        current = existing.get(key, "")
+        hint = f" [actual: {'*' * 8 + current[-4:] if current else 'no configurado'}]" if current else ""
+        raw = input(f"{prompt}{hint}: ").strip()
+        return raw if raw else current
+
+    print("1/5 — Token del bot de Telegram (BotFather → /newbot)")
+    telegram_token = ask_with_default("  TELEGRAM_TOKEN", "TELEGRAM_TOKEN")
+
+    print("\n2/5 — API key de Anthropic (console.anthropic.com)")
+    anthropic_key = ask_with_default("  ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY")
+
+    print("\n3/5 — GitHub Personal Access Token")
+    print("       (GitHub → Settings → Developer settings → Fine-grained tokens)")
+    print("       Permiso necesario: Contents → Read and write sobre el repo del vault")
+    github_token = ask_with_default("  GITHUB_TOKEN", "GITHUB_TOKEN")
+
+    print("\n4/5 — Repositorio de GitHub del vault de Obsidian (ej: usuario/obsidian)")
+    github_repo = ask_with_default("  GITHUB_VAULT_REPO", "GITHUB_VAULT_REPO")
+
+    print("\n5/5 — Carpeta base dentro del repo donde guardar las notas (ej: TL-DR)")
+    github_base = ask_with_default("  GITHUB_VAULT_BASE_PATH", "GITHUB_VAULT_BASE_PATH")
+    if not github_base:
+        github_base = "04_Sources"
+
+    return {
+        "TELEGRAM_TOKEN": telegram_token,
+        "ANTHROPIC_API_KEY": anthropic_key,
+        "GITHUB_TOKEN": github_token,
+        "GITHUB_VAULT_REPO": github_repo,
+        "GITHUB_VAULT_BASE_PATH": github_base,
+    }
+
+
+def _save_env(creds: dict):
+    with open(ENV_FILE, "w") as f:
+        for k, v in creds.items():
+            f.write(f"{k}={v}\n")
+    print(f"\nCredenciales guardadas en {ENV_FILE}")
 
 
 def _propose_categories(interests: str, api_key: str) -> list[dict]:
@@ -58,20 +117,14 @@ def _manual_input() -> list[dict]:
     return categories
 
 
-def run_setup():
-    print("=== tl-dr-bot setup ===\n")
-
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        print("ERROR: Necesitas exportar ANTHROPIC_API_KEY antes de correr setup.py")
-        return
-
+def _setup_categories(api_key: str) -> list[dict]:
+    print("\n--- Categorías ---\n")
     print("¿Sobre qué temas quieres aprender o guardar artículos?")
     print("(ej: inteligencia artificial, startups, diseño de producto, finanzas...)\n")
     interests = input("> ").strip()
     if not interests:
-        print("No has introducido nada. Saliendo.")
-        return
+        print("No has introducido nada, usando categorías por defecto.")
+        return []
 
     print("\nGenerando categorías...")
     categories = _propose_categories(interests, api_key)
@@ -100,21 +153,32 @@ def run_setup():
         else:
             print("Opción no válida. Escribe s, n o m.")
 
-    # Siempre añadir Basura al final
     if not any(c["name"] == "Basura" for c in categories):
         categories.append({
             "name": "Basura",
             "description": "Artículos que no aportan valor: superficiales, repetitivos o irrelevantes."
         })
 
-    config = {"categories": categories}
+    return categories
+
+
+def run_setup():
+    print("=== tl-dr-bot setup ===\n")
+
+    creds = _setup_credentials()
+    _save_env(creds)
+
+    categories = _setup_categories(creds["ANTHROPIC_API_KEY"])
+
+    config = {"categories": categories} if categories else {}
     with open(CONFIG_FILE, "w") as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
 
-    print(f"\nGuardado en {CONFIG_FILE}:")
-    for cat in categories:
+    print(f"\nCategorías guardadas en {CONFIG_FILE}:")
+    for cat in (categories or [{"name": "defaults", "description": "se usarán las categorías por defecto"}]):
         print(f"  - {cat['name']}: {cat['description']}")
-    print("\nYa puedes correr: python main.py")
+
+    print("\n✓ Setup completado. Ya puedes correr: python main.py")
 
 
 if __name__ == "__main__":
