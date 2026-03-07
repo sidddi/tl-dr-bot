@@ -137,15 +137,14 @@ tl-dr-bot/
 
 ## Estructura de notas en Obsidian
 
+Las carpetas se crean automáticamente según las categorías que hayas definido en `setup.py`. Por ejemplo, si configuraste `AI`, `Producto` y `Startups`:
+
 ```
 GITHUB_VAULT_BASE_PATH/
-├── Agents/
-├── MCP/
-├── LLMs/
-├── Tools/
-├── Carrera/
-├── Tutorials/
-└── Basura/
+├── AI/
+├── Producto/
+├── Startups/
+└── Basura/        ← siempre presente para artículos descartados
 ```
 
 Cada nota incluye frontmatter YAML, resumen en bullets, wikilinks relacionados y valoración de si merece la pena.
