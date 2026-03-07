@@ -3,6 +3,9 @@
 .env.sh
 *.env
 
+# Local config
+config.json
+
 # Virtual environment
 .venv/
 venv/

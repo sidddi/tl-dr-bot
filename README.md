@@ -55,6 +55,18 @@ GitHub → Settings → Developer settings → Personal access tokens → Fine-g
 
 Permisos necesarios: **Contents** → Read and write (solo en el repo del vault)
 
+## Configuración de categorías
+
+Ejecuta el script de setup para definir tus categorías temáticas:
+
+```bash
+python setup.py
+```
+
+Te pedirá las categorías separadas por comas (ej: `AI, Producto, Negocios, Tutoriales`). Las guarda en `config.json` (no se sube a git). `Basura` se añade siempre automáticamente como fallback.
+
+Si no ejecutas setup, el bot usa las categorías por defecto: `Agents, MCP, LLMs, Tools, Carrera, Tutorials, Basura`.
+
 ## Uso local
 
 > ⚠️ Solo puede haber una instancia corriendo a la vez. Si el bot está en Railway, no lo arranques en local.
@@ -66,6 +78,7 @@ export GITHUB_TOKEN=...
 export GITHUB_VAULT_REPO=tu-usuario/obsidian
 export GITHUB_VAULT_BASE_PATH=TL-DR
 
+python setup.py   # primera vez
 python main.py
 ```
 
@@ -85,10 +98,11 @@ Abre Telegram, busca tu bot y mándale cualquier URL.
 ```
 tl-dr-bot/
 ├── main.py            # Bot de Telegram
+├── setup.py           # Configuración inicial de categorías
 ├── fetcher.py         # Fetching de URLs con Jina AI Reader
 ├── summarizer.py      # Llamada a Claude API
 ├── obsidian_writer.py # Escritura de notas en Obsidian vía GitHub API
-├── config.py          # Variables de entorno
+├── config.py          # Variables de entorno y carga de config.json
 └── requirements.txt
 ```
 
