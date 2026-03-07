@@ -1,8 +1,19 @@
 # tl-dr-bot
 
-Bot de Telegram que recibe cualquier URL (artículos, hilos de Twitter/X, blogs), la resume con Claude y guarda la nota en tu vault de Obsidian vía GitHub.
+Bot de Telegram que recibe cualquier URL (artículos, hilos de Twitter/X, blogs), decide si vale la pena leerla, la resume con Claude y la guarda clasificada en tu vault de Obsidian.
 
-## Qué hace
+## El problema que resuelve
+
+Vas acumulando links durante el día — artículos, hilos de Twitter, posts, blogs. No tienes tiempo de leerlos todos en el momento, y al final se pierden o no sabes si valía la pena guardarlos.
+
+tl-dr-bot actúa como filtro inteligente:
+- **¿Vale la pena?** Claude lee el artículo y te dice si aporta algo nuevo o es contenido básico ya cubierto
+- **¿Dónde va?** Lo clasifica automáticamente según tus categorías y lo guarda en Obsidian
+- **¿Qué dice?** Te da un resumen de 3 bullets para que sepas de qué va sin leerlo entero
+
+Todo desde Telegram, sin abrir el ordenador.
+
+## Cómo funciona
 
 1. Mandas una URL por Telegram
 2. El bot fetcha el contenido con [Jina AI Reader](https://r.jina.ai) — funciona con Twitter/X, JavaScript, paywalls básicos
@@ -16,11 +27,45 @@ Las categorías son personalizadas por cada usuario con `python setup.py`. Claud
 
 `Basura` se añade siempre automáticamente para artículos que no aportan valor.
 
+## Antes de empezar
+
+Necesitas tres cosas:
+
+### 1. API key de Anthropic
+
+Entra en [console.anthropic.com](https://console.anthropic.com) → API Keys → Create Key. Necesitarás añadir créditos (unos pocos euros dan para miles de resúmenes).
+
+### 2. Bot de Telegram
+
+1. Abre Telegram y busca [@BotFather](https://t.me/BotFather)
+2. Escribe `/newbot`
+3. Ponle un nombre y un username (ej: `mi_tl_dr_bot`)
+4. BotFather te dará un token — guárdalo
+
+### 3. Vault de Obsidian en GitHub
+
+El bot escribe las notas directamente en tu repo de Obsidian vía GitHub API. Si aún no tienes el vault en git:
+
+1. Crea un repo en GitHub (puede ser privado)
+2. Clónalo y mueve tu vault de Obsidian ahí, o init git dentro del vault:
+   ```bash
+   cd ~/Documents/ObsidianVault
+   git init
+   git remote add origin https://github.com/tu-usuario/obsidian.git
+   git add . && git commit -m "init"
+   git push -u origin main
+   ```
+3. En Obsidian: Settings → Community Plugins → busca **Obsidian Git** → instálalo para que Obsidian sincronice automáticamente con el repo
+
+Luego crea un **fine-grained token** en GitHub:
+GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens → New token
+Permiso necesario: **Contents → Read and write** (solo sobre el repo del vault)
+
 ## Requisitos
 
 - Python 3.9+
-- Token de Telegram Bot ([@BotFather](https://t.me/BotFather))
-- API key de Anthropic ([console.anthropic.com](https://console.anthropic.com))
+- API key de Anthropic
+- Bot de Telegram
 - Repo de GitHub con tu vault de Obsidian
 
 ## Instalación
