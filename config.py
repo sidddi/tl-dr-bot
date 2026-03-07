@@ -16,6 +16,8 @@ def get_categories() -> list[str]:
         with open("config.json") as f:
             data = json.load(f)
         categories = data.get("categories", _DEFAULT_CATEGORIES)
+    elif os.environ.get("CATEGORIES"):
+        categories = [c.strip() for c in os.environ["CATEGORIES"].split(",") if c.strip()]
     else:
         categories = _DEFAULT_CATEGORIES
 

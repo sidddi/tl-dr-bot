@@ -86,8 +86,9 @@ python main.py
 
 1. Entra en [railway.app](https://railway.app) → New Project → Deploy from GitHub repo
 2. Selecciona `tl-dr-bot`
-3. En Variables, añade las 5 variables de entorno
-4. Railway arranca `python main.py` automáticamente
+3. En Variables, añade las 5 variables de entorno obligatorias
+4. Opcionalmente añade `CATEGORIES=AI,Producto,Negocios` para categorías custom (sin `config.json`, Railway usa esta variable o los defaults)
+5. Railway arranca `python main.py` automáticamente
 
 El bot queda corriendo 24/7 sin necesitar tu ordenador.
 
