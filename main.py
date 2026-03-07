@@ -57,11 +57,11 @@ async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     worth = summary.get("worth_reading", True)
 
     if worth:
-        msg = f"✅ *{title}* → {category}\n\n📖 Vale la pena: {vale}"
+        msg = f"✅ {title} → {category}\n\n📖 Vale la pena: {vale}"
     else:
-        msg = f"🗑️ *{title}*\n\n❌ No vale la pena: {vale}"
+        msg = f"🗑️ {title}\n\n❌ No vale la pena: {vale}"
 
-    await update.message.reply_text(msg, parse_mode="Markdown")
+    await update.message.reply_text(msg)
 
 
 def main() -> None:
