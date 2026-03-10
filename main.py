@@ -5,7 +5,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 from config import TELEGRAM_TOKEN
 from fetcher import fetch_article
 from summarizer import summarize
-from obsidian_writer import write_note
+from obsidian_writer import write_note, is_url_seen
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -25,6 +25,10 @@ async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
     if not url.startswith(("http://", "https://")):
         await update.message.reply_text("Please send a valid URL starting with http:// or https://")
+        return
+
+    if is_url_seen(url):
+        await update.message.reply_text("⚠️ Esta URL ya está guardada en tu vault.")
         return
 
     await update.message.reply_text("Leyendo y resumiendo... un momento. 🔍")

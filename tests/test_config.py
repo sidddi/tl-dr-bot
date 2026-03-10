@@ -1,5 +1,6 @@
 import json
 import os
+import pathlib
 import pytest
 from unittest.mock import patch
 
@@ -76,3 +77,23 @@ def test_get_categories_from_env_var(tmp_path, monkeypatch):
     assert "Producto" in names
     assert "Startups" in names
     assert "Basura" in names  # añadida automáticamente
+
+
+def test_config_json_has_required_categories():
+    config_path = pathlib.Path(__file__).parent.parent / "config.json"
+    assert config_path.exists(), "config.json not found"
+
+    data = json.loads(config_path.read_text())
+    categories = data.get("categories", [])
+    names = [c["name"] for c in categories]
+
+    required = {"Agentes", "Aprendizaje Técnico", "Tendencias", "Basura"}
+    assert required == set(names), f"Expected exactly {required}, got {set(names)}"
+
+
+def test_config_json_all_categories_have_description():
+    config_path = pathlib.Path(__file__).parent.parent / "config.json"
+    data = json.loads(config_path.read_text())
+
+    for cat in data["categories"]:
+        assert cat.get("description", "").strip(), f"Category '{cat['name']}' has no description"

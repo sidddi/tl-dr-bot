@@ -7,10 +7,12 @@ from summarizer import summarize
 MOCK_SUMMARY = {
     "title": "Introducción a los Agentes de IA",
     "summary": ["Los agentes pueden tomar decisiones autónomas.", "Usan LLMs como motor de razonamiento.", "El ecosistema de herramientas crece rápido."],
-    "category": "Agents",
+    "category": "Agentes",
     "relacionado": ["Agentes", "LLMs", "RAG"],
     "vale_la_pena": "Aporta una visión clara del estado actual de los agentes.",
     "worth_reading": True,
+    "tipus": "article",
+    "status": "pendent",
 }
 
 
@@ -34,7 +36,7 @@ def test_summarize_handles_json_code_block():
     with patch("summarizer._client.messages.create", return_value=_mock_claude_response(raw)):
         result = summarize("Texto del artículo", "https://example.com")
 
-    assert result["category"] == "Agents"
+    assert result["category"] == "Agentes"
 
 
 def test_summarize_prompt_includes_category_descriptions():
@@ -70,3 +72,43 @@ def test_summarize_truncates_text_to_12000_chars():
 
     user_content = captured["messages"][0]["content"]
     assert len(user_content) < 13000
+
+
+def test_summarize_returns_status_pendent():
+    with patch("summarizer._client.messages.create", return_value=_mock_claude_response(json.dumps(MOCK_SUMMARY))):
+        result = summarize("Texto del artículo", "https://example.com")
+
+    assert "status" in result
+    assert result["status"] == "pendent"
+
+
+def test_summarize_returns_valid_tipus():
+    with patch("summarizer._client.messages.create", return_value=_mock_claude_response(json.dumps(MOCK_SUMMARY))):
+        result = summarize("Texto del artículo", "https://example.com")
+
+    assert "tipus" in result
+    assert result["tipus"] in ("article", "tutorial")
+
+
+def test_summarize_tipus_tutorial():
+    mock = {**MOCK_SUMMARY, "tipus": "tutorial"}
+    with patch("summarizer._client.messages.create", return_value=_mock_claude_response(json.dumps(mock))):
+        result = summarize("Texto del artículo", "https://example.com")
+
+    assert result["tipus"] == "tutorial"
+    assert result["tipus"] in ("article", "tutorial")
+
+
+def test_summarize_prompt_includes_tipus_and_status_fields():
+    captured = {}
+
+    def fake_create(**kwargs):
+        captured["system"] = kwargs.get("system", "")
+        return _mock_claude_response(json.dumps(MOCK_SUMMARY))
+
+    with patch("summarizer._client.messages.create", side_effect=fake_create):
+        summarize("Texto", "https://example.com")
+
+    assert "tipus" in captured["system"]
+    assert "status" in captured["system"]
+    assert "pendent" in captured["system"]

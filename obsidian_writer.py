@@ -2,7 +2,7 @@ import re
 import base64
 from datetime import datetime
 import requests
-from config import GITHUB_TOKEN, GITHUB_VAULT_REPO, GITHUB_VAULT_BASE_PATH
+from config import GITHUB_TOKEN, GITHUB_VAULT_REPO, GITHUB_VAULT_BASE_PATH, get_categories
 
 GITHUB_API = "https://api.github.com"
 
@@ -31,45 +31,58 @@ def _get_file_sha(path: str) -> str | None:
     return None
 
 
-_INDEX_CONTENT = """\
-# TL-DR Index
+_SEEN_URLS_PATH = f"{GITHUB_VAULT_BASE_PATH}/.seen_urls"
 
-## 📋 Pendents
 
-### 🤖 Agentes
-```dataview
-TABLE title, tipus, date, source
-FROM "TL-DR/Agentes"
-WHERE status = "pendent"
-SORT date DESC
-```
+def is_url_seen(url: str) -> bool:
+    r = requests.get(
+        f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{_SEEN_URLS_PATH}",
+        headers=_github_headers(),
+    )
+    if r.status_code != 200:
+        return False
+    content = base64.b64decode(r.json()["content"]).decode("utf-8")
+    return url in content.splitlines()
 
-### 📚 Aprendizaje Técnico
-```dataview
-TABLE title, tipus, date, source
-FROM "TL-DR/Aprendizaje Técnico"
-WHERE status = "pendent"
-SORT date DESC
-```
 
-### 📈 Tendencias
-```dataview
-TABLE title, tipus, date, source
-FROM "TL-DR/Tendencias"
-WHERE status = "pendent"
-SORT date DESC
-```
+def _mark_url_seen(url: str) -> None:
+    r = requests.get(
+        f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{_SEEN_URLS_PATH}",
+        headers=_github_headers(),
+    )
+    if r.status_code == 200:
+        existing = base64.b64decode(r.json()["content"]).decode("utf-8")
+        sha = r.json()["sha"]
+    else:
+        existing = ""
+        sha = None
 
----
+    new_content = (existing.rstrip("\n") + "\n" + url + "\n").lstrip("\n")
+    encoded = base64.b64encode(new_content.encode("utf-8")).decode("utf-8")
+    payload = {"message": "track: seen url", "content": encoded}
+    if sha:
+        payload["sha"] = sha
+    requests.put(
+        f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{_SEEN_URLS_PATH}",
+        headers=_github_headers(),
+        json=payload,
+    ).raise_for_status()
 
-## ✅ Llegits
-```dataview
-TABLE title, category, tipus, date, source
-FROM "TL-DR"
-WHERE status = "llegit"
-SORT date DESC
-```
-"""
+
+def _build_index_content(base_path: str) -> str:
+    categories = [c for c in get_categories() if c["name"] != "Basura"]
+    sections = []
+    for cat in categories:
+        name = cat["name"]
+        sections.append(
+            f'## {name}\n'
+            f'```dataview\n'
+            f'TABLE title, tipus, status, date, source\n'
+            f'FROM "{base_path}/{name}"\n'
+            f'SORT status ASC, date DESC\n'
+            f'```'
+        )
+    return "# TL-DR Index\n\n" + "\n\n".join(sections) + "\n"
 
 
 def write_note(url: str, summary: dict) -> str:
@@ -130,5 +143,6 @@ source: "{url}"
         json=payload,
     )
     r.raise_for_status()
+    _mark_url_seen(url)
 
     return path

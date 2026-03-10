@@ -181,7 +181,7 @@ def _setup_categories(api_key: str) -> list[dict]:
 
 
 def _create_index(github_token: str, github_repo: str, base_path: str) -> None:
-    from obsidian_writer import _INDEX_CONTENT
+    from obsidian_writer import _build_index_content
     path = f"{base_path}/TL-DR Index.md"
     headers = {
         "Authorization": f"token {github_token}",
@@ -191,17 +191,19 @@ def _create_index(github_token: str, github_repo: str, base_path: str) -> None:
         f"https://api.github.com/repos/{github_repo}/contents/{path}",
         headers=headers,
     )
-    if r.status_code == 200:
-        print("\n  TL-DR Index.md ya existe, no se sobreescribe.")
-        return
-    encoded = base64.b64encode(_INDEX_CONTENT.encode("utf-8")).decode("utf-8")
+    sha = r.json().get("sha") if r.status_code == 200 else None
+    index_content = _build_index_content(base_path)
+    encoded = base64.b64encode(index_content.encode("utf-8")).decode("utf-8")
+    payload = {"message": "update: TL-DR Index", "content": encoded}
+    if sha:
+        payload["sha"] = sha
     r = requests.put(
         f"https://api.github.com/repos/{github_repo}/contents/{path}",
         headers=headers,
-        json={"message": "add: TL-DR Index", "content": encoded},
+        json=payload,
     )
     r.raise_for_status()
-    print("\n  ✓ TL-DR Index.md creado en tu vault de Obsidian.")
+    print("\n  ✓ TL-DR Index.md actualizado en tu vault de Obsidian.")
 
 
 def run_setup():
