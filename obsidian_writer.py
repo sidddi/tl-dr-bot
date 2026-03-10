@@ -31,7 +31,63 @@ def _get_file_sha(path: str) -> str | None:
     return None
 
 
+_INDEX_CONTENT = """\
+# TL-DR Index
+
+## 📋 Pendents
+
+### 🤖 Agentes
+```dataview
+TABLE title, tipus, date, source
+FROM "TL-DR/Agentes"
+WHERE status = "pendent"
+SORT date DESC
+```
+
+### 📚 Aprendizaje Técnico
+```dataview
+TABLE title, tipus, date, source
+FROM "TL-DR/Aprendizaje Técnico"
+WHERE status = "pendent"
+SORT date DESC
+```
+
+### 📈 Tendencias
+```dataview
+TABLE title, tipus, date, source
+FROM "TL-DR/Tendencias"
+WHERE status = "pendent"
+SORT date DESC
+```
+
+---
+
+## ✅ Llegits
+```dataview
+TABLE title, category, tipus, date, source
+FROM "TL-DR"
+WHERE status = "llegit"
+SORT date DESC
+```
+"""
+
+
+def _ensure_index() -> None:
+    path = f"{GITHUB_VAULT_BASE_PATH}/TL-DR Index.md"
+    sha = _get_file_sha(path)
+    if sha is not None:
+        return
+    encoded = base64.b64encode(_INDEX_CONTENT.encode("utf-8")).decode("utf-8")
+    r = requests.put(
+        f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{path}",
+        headers=_github_headers(),
+        json={"message": "add: TL-DR Index", "content": encoded},
+    )
+    r.raise_for_status()
+
+
 def write_note(url: str, summary: dict) -> str:
+    _ensure_index()
     title = summary.get("title", "Untitled")
     category = summary.get("category", "General")
     bullets = summary.get("summary", [])

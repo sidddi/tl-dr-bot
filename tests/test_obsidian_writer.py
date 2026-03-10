@@ -5,11 +5,13 @@ from obsidian_writer import write_note
 
 SUMMARY_WORTH_READING = {
     "title": "Cómo funcionan los Agentes de IA",
-    "category": "Agents",
+    "category": "Agentes",
     "summary": ["Punto 1", "Punto 2", "Punto 3"],
     "relacionado": ["Agentes", "LLMs"],
     "vale_la_pena": "Muy buen artículo con perspectiva novedosa.",
     "worth_reading": True,
+    "tipus": "article",
+    "status": "pendent",
 }
 
 SUMMARY_NOT_WORTH = {
@@ -38,7 +40,7 @@ def test_write_note_routes_to_category_folder():
          patch("obsidian_writer.requests.put", mock_put):
         path = write_note("https://example.com", SUMMARY_WORTH_READING)
 
-    assert "/Agents/" in path
+    assert "/Agentes/" in path
 
 
 def test_write_note_routes_to_basura_when_not_worth_reading():
@@ -63,7 +65,9 @@ def test_write_note_frontmatter_contains_required_fields():
     content = base64.b64decode(payload["content"]).decode("utf-8")
 
     assert 'title: "Cómo funcionan los Agentes de IA"' in content
-    assert "category: Agents" in content
+    assert "category: Agentes" in content
+    assert "tipus: article" in content
+    assert "status: pendent" in content
     assert 'source: "https://example.com"' in content
     assert "## Resumen" in content
     assert "## Relacionado" in content
