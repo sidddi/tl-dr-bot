@@ -38,12 +38,16 @@ def write_note(url: str, summary: dict) -> str:
     relacionado = summary.get("relacionado", [])
     vale_la_pena = summary.get("vale_la_pena", "")
     worth_reading = summary.get("worth_reading", True)
+    tipus = summary.get("tipus", "article")
+    status = summary.get("status", "pendent")
     date_str = datetime.now().strftime("%Y-%m-%d")
 
     frontmatter = f"""---
 title: "{title}"
 date: {date_str}
 category: {category}
+tipus: {tipus}
+status: {status}
 source: "{url}"
 ---
 """

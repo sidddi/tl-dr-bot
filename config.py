@@ -12,13 +12,10 @@ GITHUB_VAULT_REPO = os.environ["GITHUB_VAULT_REPO"]       # ej: "sidddi/obsidian
 GITHUB_VAULT_BASE_PATH = os.environ.get("GITHUB_VAULT_BASE_PATH", "04_Sources")
 
 _DEFAULT_CATEGORIES = [
-    {"name": "Agents", "description": "Agentes autónomos de IA: arquitecturas, frameworks y casos de uso."},
-    {"name": "MCP", "description": "Model Context Protocol: herramientas, servidores y integraciones."},
-    {"name": "LLMs", "description": "Modelos de lenguaje: arquitectura, benchmarks y nuevos modelos."},
-    {"name": "Tools", "description": "Herramientas y plataformas prácticas de IA: APIs, interfaces y servicios."},
-    {"name": "Carrera", "description": "Desarrollo profesional, trabajo en IA, oportunidades y tendencias del sector."},
-    {"name": "Tutorials", "description": "Guías paso a paso y contenido didáctico con ejemplos prácticos."},
-    {"name": "Basura", "description": "Artículos que no aportan valor: superficiales, repetitivos o irrelevantes."},
+    {"name": "Agentes", "description": "Sistemas de IA autónomos, agentes multi-step, MCP, RAG, flujos de razonamiento automatizado y arquitecturas agentic. Incluye frameworks como LangGraph, AutoGen, CrewAI. No incluye modelos base ni herramientas genéricas."},
+    {"name": "Aprendizaje Técnico", "description": "Tutoriales, guías prácticas y recursos educativos sobre técnicas concretas de IA: prompt engineering, RAG, embeddings, fine-tuning, observabilidad. Incluye tanto artículos de lectura rápida como tutoriales que requieren tiempo de práctica. No incluye noticias de industria ni investigación académica."},
+    {"name": "Tendencias", "description": "Noticias relevantes sobre el sector IA, lanzamientos de productos, estrategia de empresas y movimientos del mercado. No incluye análisis técnicos profundos ni tutoriales."},
+    {"name": "Basura", "description": "Artículos superficiales, repetitivos, clickbait o irrelevantes."},
 ]
 
 

@@ -11,6 +11,8 @@ _SYSTEM_PROMPT_TEMPLATE = """Eres un asistente de investigación. Dado el texto 
 - relacionado: array de 2-3 strings — conceptos relevantes como wikilinks de Obsidian, ej: ["Agentes", "RAG", "MCP"]
 - vale_la_pena: string — una frase en español: ¿aporta algo nuevo o es contenido básico ya cubierto?
 - worth_reading: boolean — true si aporta perspectiva nueva o valor real, false si es básico, repetitivo, superficial o ya conocido
+- tipus: string — "article" si es de lectura rápida (menos de 15 min), "tutorial" si requiere práctica o tiempo significativo (más de 15 min)
+- status: string — siempre "pendent"
 
 Categorías disponibles:
 {categories}
