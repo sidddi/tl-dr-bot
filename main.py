@@ -55,7 +55,8 @@ async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         await update.message.reply_text(f"Could not save note to Obsidian: {e}")
         return
 
-    mark_url_seen(url)
+    if not mark_url_seen(url):
+        await update.message.reply_text("⚠️ Nota guardada, pero no pude registrar la URL para deduplicación. Revisa los logs.")
 
     title = summary.get("title", "Untitled")
     category = summary.get("category", "Basura")

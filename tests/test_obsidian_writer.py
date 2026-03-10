@@ -159,15 +159,24 @@ def test_mark_url_seen_writes_url_to_file():
 
     with patch("obsidian_writer.requests.get", mock_get), \
          patch("obsidian_writer.requests.put", mock_put):
-        mark_url_seen("https://example.com/new")
+        result = mark_url_seen("https://example.com/new")
 
+    assert result is True
     payload = mock_put.call_args[1]["json"]
     content = base64.b64decode(payload["content"]).decode("utf-8")
     assert "https://example.com/new" in content
 
 
-def test_mark_url_seen_does_not_raise_on_error():
+def test_mark_url_seen_returns_false_on_error():
     mock_get = MagicMock(side_effect=Exception("network error"))
 
     with patch("obsidian_writer.requests.get", mock_get):
-        mark_url_seen("https://example.com/new")  # should not raise
+        result = mark_url_seen("https://example.com/new")
+
+    assert result is False
+
+
+def test_seen_urls_path_uses_txt_extension():
+    from obsidian_writer import _SEEN_URLS_PATH
+    assert _SEEN_URLS_PATH.endswith("seen_urls.txt")
+    assert not _SEEN_URLS_PATH.endswith(".seen_urls")

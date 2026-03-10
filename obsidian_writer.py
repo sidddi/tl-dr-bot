@@ -33,7 +33,7 @@ def _get_file_sha(path: str) -> str | None:
     return None
 
 
-_SEEN_URLS_PATH = f"{GITHUB_VAULT_BASE_PATH}/.seen_urls"
+_SEEN_URLS_PATH = f"{GITHUB_VAULT_BASE_PATH}/seen_urls.txt"
 
 
 def is_url_seen(url: str) -> bool:
@@ -54,7 +54,7 @@ def is_url_seen(url: str) -> bool:
         return False
 
 
-def mark_url_seen(url: str) -> None:
+def mark_url_seen(url: str) -> bool:
     try:
         r = requests.get(
             f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{_SEEN_URLS_PATH}",
@@ -79,8 +79,10 @@ def mark_url_seen(url: str) -> None:
         )
         resp.raise_for_status()
         logger.info("mark_url_seen: saved %s (status %d)", url, resp.status_code)
+        return True
     except Exception as e:
         logger.error("mark_url_seen failed for %s: %s", url, e)
+        return False
 
 
 def _build_index_content(base_path: str) -> str:
