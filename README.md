@@ -17,7 +17,7 @@ Todo desde Telegram, sin abrir el ordenador.
 
 1. Mandas una URL por Telegram
 2. El bot fetcha el contenido con [Jina AI Reader](https://r.jina.ai) — funciona con Twitter/X, JavaScript, paywalls básicos
-3. Claude analiza el artículo y devuelve: título, resumen en 3 bullets, categoría, conceptos relacionados y si vale la pena leerlo
+3. Claude analiza el artículo y devuelve: título, resumen en 3 bullets, categoría, conceptos relacionados, tipo y valoración
 4. Se guarda un `.md` en tu vault de Obsidian (vía GitHub API) con frontmatter YAML
 5. El bot te responde: ✅ si vale la pena, 🗑️ si no
 
@@ -26,6 +26,32 @@ Todo desde Telegram, sin abrir el ordenador.
 Las categorías son personalizadas por cada usuario con `python setup.py`. Claude propone categorías con nombre y descripción según tus intereses, o puedes definirlas a mano.
 
 `Basura` se añade siempre automáticamente para artículos que no aportan valor.
+
+### Frontmatter de cada nota
+
+Cada nota guardada en Obsidian incluye estos campos en el YAML:
+
+```yaml
+---
+title: "Título del artículo"
+date: 2026-03-10
+category: Agentes
+tipus: article        # "article" (lectura rápida) o "tutorial" (requiere práctica)
+status: pendent       # cambia a "llegit" cuando lo hayas leído
+source: "https://..."
+---
+```
+
+**Flujo de lectura:** cuando termines de leer un artículo, abre la nota en Obsidian y cambia `status: pendent` a `status: llegit`. El índice se actualiza automáticamente.
+
+### TL-DR Index
+
+Al ejecutar `setup.py` por primera vez se crea automáticamente un archivo `TL-DR Index.md` en la raíz de tu carpeta con queries Dataview:
+
+- **Pendents** — artículos guardados por categoría que aún no has leído (`status: pendent`)
+- **Llegits** — todos los artículos que has marcado como leídos (`status: llegit`)
+
+Requiere el plugin [Dataview](https://github.com/blacksmithgu/obsidian-dataview) instalado en Obsidian.
 
 ## Antes de empezar
 
@@ -97,9 +123,11 @@ El setup hace dos cosas:
 - `GITHUB_VAULT_REPO` — repo de Obsidian (ej: `usuario/obsidian`)
 - `GITHUB_VAULT_BASE_PATH` — carpeta base dentro del repo (ej: `TL-DR`)
 
-**2. Categorías** — te pregunta sobre qué temas quieres aprender, Claude propone 6-8 categorías con nombre y descripción, y puedes aceptarlas, pedir nuevas, o definirlas a mano. Se guardan en `config.json` (no se sube a git).
+**2. Categorías** — te pregunta sobre qué temas quieres aprender, Claude propone categorías con nombre y descripción, y puedes aceptarlas, pedir nuevas, o definirlas a mano. Si ya tienes categorías guardadas, te pregunta si quieres mantenerlas o reemplazarlas. Se guardan en `config.json` (no se sube a git).
 
 Las descripciones son clave: Claude las usa para clasificar correctamente cada artículo.
+
+**3. TL-DR Index** — crea automáticamente `TL-DR Index.md` en tu vault con queries Dataview para navegar los artículos pendientes y leídos por categoría.
 
 ## Uso local
 
@@ -147,4 +175,6 @@ GITHUB_VAULT_BASE_PATH/
 └── Basura/        ← siempre presente para artículos descartados
 ```
 
-Cada nota incluye frontmatter YAML, resumen en bullets, wikilinks relacionados y valoración de si merece la pena.
+Cada nota incluye frontmatter YAML (título, fecha, categoría, `tipus`, `status`, fuente), resumen en bullets, wikilinks relacionados y valoración de si merece la pena.
+
+Para marcar un artículo como leído, abre la nota en Obsidian y cambia `status: pendent` a `status: llegit`.
