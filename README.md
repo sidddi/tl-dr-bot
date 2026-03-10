@@ -10,16 +10,18 @@ tl-dr-bot actúa como filtro inteligente:
 - **¿Vale la pena?** Claude lee el artículo y te dice si aporta algo nuevo o es contenido básico ya cubierto
 - **¿Dónde va?** Lo clasifica automáticamente según tus categorías y lo guarda en Obsidian
 - **¿Qué dice?** Te da un resumen de 3 bullets para que sepas de qué va sin leerlo entero
+- **¿Ya lo tienes?** Detecta duplicados — si mandas una URL que ya guardaste, te avisa sin volver a procesarla
 
 Todo desde Telegram, sin abrir el ordenador.
 
 ## Cómo funciona
 
 1. Mandas una URL por Telegram
-2. El bot fetcha el contenido con [Jina AI Reader](https://r.jina.ai) — funciona con Twitter/X, JavaScript, paywalls básicos
-3. Claude analiza el artículo y devuelve: título, resumen en 3 bullets, categoría, conceptos relacionados, tipo y valoración
-4. Se guarda un `.md` en tu vault de Obsidian (vía GitHub API) con frontmatter YAML
-5. El bot te responde: ✅ si vale la pena, 🗑️ si no
+2. El bot comprueba si ya está guardada — si es duplicado, te avisa y para aquí
+3. Fetcha el contenido con [Jina AI Reader](https://r.jina.ai) — funciona con Twitter/X, JavaScript, paywalls básicos
+4. Claude analiza el artículo y devuelve: título, resumen en 3 bullets, categoría, conceptos relacionados, tipo y valoración
+5. Se guarda un `.md` en tu vault de Obsidian (vía GitHub API) con frontmatter YAML
+6. El bot te responde: ✅ si vale la pena, 🗑️ si no
 
 ### Categorías
 
@@ -46,12 +48,13 @@ source: "https://..."
 
 ### TL-DR Index
 
-Al ejecutar `setup.py` por primera vez se crea automáticamente un archivo `TL-DR Index.md` en la raíz de tu carpeta con queries Dataview:
-
-- **Pendientes** — artículos guardados por categoría que aún no has leído (`status: pendent`)
-- **Leídos** — todos los artículos que has marcado como leídos (`status: llegit`)
+Al ejecutar `setup.py` se crea (o actualiza) automáticamente un archivo `TL-DR Index.md` en la raíz de tu carpeta. Contiene una tabla Dataview por categoría con todos los artículos ordenados por estado (`pendent` primero) y fecha.
 
 Requiere el plugin [Dataview](https://github.com/blacksmithgu/obsidian-dataview) instalado en Obsidian.
+
+### Deduplicación
+
+El bot mantiene un archivo `seen_urls.txt` en tu vault con todas las URLs ya procesadas. Si mandas una URL repetida, responde `⚠️ Esta URL ya está guardada en tu vault.` sin volver a fetchear ni consumir créditos de Claude.
 
 ## Antes de empezar
 
@@ -172,7 +175,9 @@ GITHUB_VAULT_BASE_PATH/
 ├── AI/
 ├── Producto/
 ├── Startups/
-└── Basura/        ← siempre presente para artículos descartados
+├── Basura/           ← siempre presente para artículos descartados
+├── TL-DR Index.md    ← índice Dataview generado por setup.py
+└── seen_urls.txt     ← registro de URLs ya procesadas (deduplicación)
 ```
 
 Cada nota incluye frontmatter YAML (título, fecha, categoría, `tipus`, `status`, fuente), resumen en bullets, wikilinks relacionados y valoración de si merece la pena.
