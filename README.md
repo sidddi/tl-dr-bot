@@ -48,8 +48,8 @@ source: "https://..."
 
 Al ejecutar `setup.py` por primera vez se crea automáticamente un archivo `TL-DR Index.md` en la raíz de tu carpeta con queries Dataview:
 
-- **Pendents** — artículos guardados por categoría que aún no has leído (`status: pendent`)
-- **Llegits** — todos los artículos que has marcado como leídos (`status: llegit`)
+- **Pendientes** — artículos guardados por categoría que aún no has leído (`status: pendent`)
+- **Leídos** — todos los artículos que has marcado como leídos (`status: llegit`)
 
 Requiere el plugin [Dataview](https://github.com/blacksmithgu/obsidian-dataview) instalado en Obsidian.
 
