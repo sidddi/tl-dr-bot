@@ -5,7 +5,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, fil
 from config import TELEGRAM_TOKEN
 from fetcher import fetch_article
 from summarizer import summarize
-from obsidian_writer import write_note, is_url_seen
+from obsidian_writer import write_note, is_url_seen, mark_url_seen
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -54,6 +54,8 @@ async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         logger.error("Obsidian write error: %s", e)
         await update.message.reply_text(f"Could not save note to Obsidian: {e}")
         return
+
+    mark_url_seen(url)
 
     title = summary.get("title", "Untitled")
     category = summary.get("category", "Basura")

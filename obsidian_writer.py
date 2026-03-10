@@ -1,10 +1,12 @@
 import re
 import base64
+import logging
 from datetime import datetime
 import requests
 from config import GITHUB_TOKEN, GITHUB_VAULT_REPO, GITHUB_VAULT_BASE_PATH, get_categories
 
 GITHUB_API = "https://api.github.com"
+logger = logging.getLogger(__name__)
 
 
 def _slugify(text: str) -> str:
@@ -35,38 +37,50 @@ _SEEN_URLS_PATH = f"{GITHUB_VAULT_BASE_PATH}/.seen_urls"
 
 
 def is_url_seen(url: str) -> bool:
-    r = requests.get(
-        f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{_SEEN_URLS_PATH}",
-        headers=_github_headers(),
-    )
-    if r.status_code != 200:
+    try:
+        r = requests.get(
+            f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{_SEEN_URLS_PATH}",
+            headers=_github_headers(),
+        )
+        logger.info("is_url_seen: GET %s → %d", _SEEN_URLS_PATH, r.status_code)
+        if r.status_code != 200:
+            return False
+        content = base64.b64decode(r.json()["content"]).decode("utf-8")
+        found = url in content.splitlines()
+        logger.info("is_url_seen: url=%s found=%s", url, found)
+        return found
+    except Exception as e:
+        logger.error("is_url_seen error: %s", e)
         return False
-    content = base64.b64decode(r.json()["content"]).decode("utf-8")
-    return url in content.splitlines()
 
 
-def _mark_url_seen(url: str) -> None:
-    r = requests.get(
-        f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{_SEEN_URLS_PATH}",
-        headers=_github_headers(),
-    )
-    if r.status_code == 200:
-        existing = base64.b64decode(r.json()["content"]).decode("utf-8")
-        sha = r.json()["sha"]
-    else:
-        existing = ""
-        sha = None
+def mark_url_seen(url: str) -> None:
+    try:
+        r = requests.get(
+            f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{_SEEN_URLS_PATH}",
+            headers=_github_headers(),
+        )
+        if r.status_code == 200:
+            existing = base64.b64decode(r.json()["content"]).decode("utf-8")
+            sha = r.json()["sha"]
+        else:
+            existing = ""
+            sha = None
 
-    new_content = (existing.rstrip("\n") + "\n" + url + "\n").lstrip("\n")
-    encoded = base64.b64encode(new_content.encode("utf-8")).decode("utf-8")
-    payload = {"message": "track: seen url", "content": encoded}
-    if sha:
-        payload["sha"] = sha
-    requests.put(
-        f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{_SEEN_URLS_PATH}",
-        headers=_github_headers(),
-        json=payload,
-    ).raise_for_status()
+        new_content = (existing.rstrip("\n") + "\n" + url + "\n").lstrip("\n")
+        encoded = base64.b64encode(new_content.encode("utf-8")).decode("utf-8")
+        payload = {"message": "track: seen url", "content": encoded}
+        if sha:
+            payload["sha"] = sha
+        resp = requests.put(
+            f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{_SEEN_URLS_PATH}",
+            headers=_github_headers(),
+            json=payload,
+        )
+        resp.raise_for_status()
+        logger.info("mark_url_seen: saved %s (status %d)", url, resp.status_code)
+    except Exception as e:
+        logger.error("mark_url_seen failed for %s: %s", url, e)
 
 
 def _build_index_content(base_path: str) -> str:
@@ -143,6 +157,5 @@ source: "{url}"
         json=payload,
     )
     r.raise_for_status()
-    _mark_url_seen(url)
 
     return path

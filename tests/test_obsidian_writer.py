@@ -1,7 +1,7 @@
 import base64
 import pytest
 from unittest.mock import patch, MagicMock, call
-from obsidian_writer import write_note, is_url_seen
+from obsidian_writer import write_note, is_url_seen, mark_url_seen
 
 
 SUMMARY_WORTH_READING = {
@@ -66,8 +66,7 @@ def test_write_note_frontmatter_contains_required_fields():
          patch("obsidian_writer.requests.put", mock_put):
         write_note("https://example.com", SUMMARY_WORTH_READING)
 
-    # First put call is the note write; second is _mark_url_seen
-    payload = mock_put.call_args_list[0][1]["json"]
+    payload = mock_put.call_args[1]["json"]
     content = base64.b64decode(payload["content"]).decode("utf-8")
 
     assert 'title: "Cómo funcionan los Agentes de IA"' in content
@@ -87,7 +86,7 @@ def test_write_note_includes_sha_when_file_exists():
          patch("obsidian_writer.requests.put", mock_put):
         write_note("https://example.com", SUMMARY_WORTH_READING)
 
-    payload = mock_put.call_args_list[0][1]["json"]
+    payload = mock_put.call_args[1]["json"]
     assert payload["sha"] == "abc123"
 
 
@@ -98,22 +97,19 @@ def test_write_note_no_sha_when_file_is_new():
          patch("obsidian_writer.requests.put", mock_put):
         write_note("https://example.com", SUMMARY_WORTH_READING)
 
-    payload = mock_put.call_args_list[0][1]["json"]
+    payload = mock_put.call_args[1]["json"]
     assert "sha" not in payload
 
 
-def test_write_note_marks_url_as_seen():
+def test_write_note_only_calls_one_put():
+    """write_note no longer calls mark_url_seen internally."""
     mock_put = _make_put()
 
     with patch("obsidian_writer.requests.get", _make_get()), \
          patch("obsidian_writer.requests.put", mock_put):
         write_note("https://example.com/article", SUMMARY_WORTH_READING)
 
-    # Second put call should be _mark_url_seen updating .seen_urls
-    assert mock_put.call_count == 2
-    seen_payload = mock_put.call_args_list[1][1]["json"]
-    seen_content = base64.b64decode(seen_payload["content"]).decode("utf-8")
-    assert "https://example.com/article" in seen_content
+    assert mock_put.call_count == 1
 
 
 def test_is_url_seen_returns_true_when_url_in_file():
@@ -145,3 +141,33 @@ def test_is_url_seen_returns_false_when_file_missing():
 
     with patch("obsidian_writer.requests.get", mock_get):
         assert is_url_seen("https://example.com/new") is False
+
+
+def test_is_url_seen_returns_false_on_exception():
+    mock_get = MagicMock(side_effect=Exception("network error"))
+
+    with patch("obsidian_writer.requests.get", mock_get):
+        assert is_url_seen("https://example.com/new") is False
+
+
+def test_mark_url_seen_writes_url_to_file():
+    mock_get = MagicMock()
+    mock_get.return_value.status_code = 404
+    mock_put = MagicMock()
+    mock_put.return_value.status_code = 201
+    mock_put.return_value.raise_for_status = MagicMock()
+
+    with patch("obsidian_writer.requests.get", mock_get), \
+         patch("obsidian_writer.requests.put", mock_put):
+        mark_url_seen("https://example.com/new")
+
+    payload = mock_put.call_args[1]["json"]
+    content = base64.b64decode(payload["content"]).decode("utf-8")
+    assert "https://example.com/new" in content
+
+
+def test_mark_url_seen_does_not_raise_on_error():
+    mock_get = MagicMock(side_effect=Exception("network error"))
+
+    with patch("obsidian_writer.requests.get", mock_get):
+        mark_url_seen("https://example.com/new")  # should not raise
