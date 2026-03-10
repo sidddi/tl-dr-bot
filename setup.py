@@ -1,6 +1,8 @@
+import base64
 import json
 import os
 import anthropic
+import requests
 
 CONFIG_FILE = "config.json"
 ENV_FILE = ".env"
@@ -162,6 +164,30 @@ def _setup_categories(api_key: str) -> list[dict]:
     return categories
 
 
+def _create_index(github_token: str, github_repo: str, base_path: str) -> None:
+    from obsidian_writer import _INDEX_CONTENT
+    path = f"{base_path}/TL-DR Index.md"
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept": "application/vnd.github+json",
+    }
+    r = requests.get(
+        f"https://api.github.com/repos/{github_repo}/contents/{path}",
+        headers=headers,
+    )
+    if r.status_code == 200:
+        print("\n  TL-DR Index.md ya existe, no se sobreescribe.")
+        return
+    encoded = base64.b64encode(_INDEX_CONTENT.encode("utf-8")).decode("utf-8")
+    r = requests.put(
+        f"https://api.github.com/repos/{github_repo}/contents/{path}",
+        headers=headers,
+        json={"message": "add: TL-DR Index", "content": encoded},
+    )
+    r.raise_for_status()
+    print("\n  ✓ TL-DR Index.md creado en tu vault de Obsidian.")
+
+
 def run_setup():
     print("=== tl-dr-bot setup ===\n")
 
@@ -177,6 +203,13 @@ def run_setup():
     print(f"\nCategorías guardadas en {CONFIG_FILE}:")
     for cat in (categories or [{"name": "defaults", "description": "se usarán las categorías por defecto"}]):
         print(f"  - {cat['name']}: {cat['description']}")
+
+    print("\nCreando TL-DR Index.md en tu vault de Obsidian...")
+    _create_index(
+        creds["GITHUB_TOKEN"],
+        creds["GITHUB_VAULT_REPO"],
+        creds["GITHUB_VAULT_BASE_PATH"],
+    )
 
     print("\n✓ Setup completado. Ya puedes correr: python main.py")
 
