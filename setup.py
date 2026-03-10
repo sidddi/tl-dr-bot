@@ -121,6 +121,22 @@ def _manual_input() -> list[dict]:
 
 def _setup_categories(api_key: str) -> list[dict]:
     print("\n--- Categorías ---\n")
+
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE) as f:
+            existing = json.load(f).get("categories", [])
+        if existing:
+            print("Categorías actuales:")
+            for cat in existing:
+                print(f"  - {cat['name']}: {cat['description']}")
+            print("\n¿Qué quieres hacer?")
+            print("  [k] Mantener las categorías actuales")
+            print("  [r] Reemplazarlas con nuevas")
+            choice = input("\n> ").strip().lower()
+            if choice != "r":
+                print("Manteniendo categorías actuales.")
+                return existing
+
     print("¿Sobre qué temas quieres aprender o guardar artículos?")
     print("(ej: inteligencia artificial, startups, diseño de producto, finanzas...)\n")
     interests = input("> ").strip()
