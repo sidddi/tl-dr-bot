@@ -18,6 +18,7 @@ GITHUB_VAULT_REPO = os.environ["GITHUB_VAULT_REPO"]
 ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
 TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
+GITHUB_VAULT_BASE_PATH = os.environ["GITHUB_VAULT_BASE_PATH"]
 
 GITHUB_API = "https://api.github.com"
 _GITHUB_HEADERS = {
@@ -92,14 +93,22 @@ def _collect_articles() -> list[dict]:
         except Exception:
             continue
         fm, body = _parse_frontmatter(content)
-        if fm.get("status") != "llegit":
+        if fm.get("status") not in ("llegit", "read"):
             continue
         article_date = fm.get("date", "")
         if not _within_last_7_days(article_date):
             continue
+        _CATEGORY_ALIASES = {
+            "Agents": "Agentes",
+            "Technical Learning": "Aprendizaje Técnico",
+            "Trends": "Tendencias",
+            "Trash": "Basura",
+        }
+        raw_category = fm.get("category") or fm.get("categoria", "General")
+        category = _CATEGORY_ALIASES.get(raw_category, raw_category)
         articles.append({
             "title": fm.get("title", path.split("/")[-1].replace(".md", "")),
-            "category": fm.get("category") or fm.get("categoria", "General"),
+            "category": category,
             "date": article_date,
             "body": body,
         })
@@ -143,7 +152,7 @@ def _generate_draft(articles: list[dict]) -> str:
 
 def _save_draft(draft: str, year: int, week: int, article_count: int) -> str:
     filename = f"Newsletter-{year}-W{week:02d}.md"
-    path = f"Newsletter/{filename}"
+    path = f"{GITHUB_VAULT_BASE_PATH}/Newsletter/{filename}"
     content = (
         f"---\n"
         f"date: {date.today().isoformat()}\n"
