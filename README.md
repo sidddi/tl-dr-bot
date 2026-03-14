@@ -153,12 +153,36 @@ El bot queda corriendo 24/7 sin necesitar tu ordenador.
 
 Abre Telegram, busca tu bot y mándale cualquier URL.
 
+## Newsletter semanal
+
+`newsletter.py` genera un borrador de newsletter para LinkedIn a partir de los artículos que hayas marcado como leídos (`status: llegit`) en la última semana.
+
+```bash
+python newsletter.py
+```
+
+**Qué hace:**
+1. Lee todos los archivos `.md` del repo de Obsidian vía GitHub API
+2. Filtra los que tienen `status: llegit` y `date` de los últimos 7 días
+3. Agrupa los artículos por categoría con sus resúmenes
+4. Llama a Claude para generar el borrador en español, tono natural, sin frases de IA
+5. Guarda el borrador en `Newsletter/Newsletter-{YYYY}-W{WW}.md` en el vault
+6. Te notifica por Telegram con el nombre del archivo generado
+
+Si no has leído ningún artículo esta semana, te avisa por Telegram sin generar nada.
+
+**Variables de entorno necesarias** (además de las del bot):
+- `GITHUB_REPO` — repo en formato `usuario/repo`
+- `TELEGRAM_BOT_TOKEN` — token del bot de Telegram
+- `TELEGRAM_CHAT_ID` — tu chat ID de Telegram
+
 ## Estructura del proyecto
 
 ```
 tl-dr-bot/
 ├── main.py            # Bot de Telegram
 ├── setup.py           # Configuración inicial de categorías
+├── newsletter.py      # Generador de newsletter semanal
 ├── fetcher.py         # Fetching de URLs con Jina AI Reader
 ├── summarizer.py      # Llamada a Claude API
 ├── obsidian_writer.py # Escritura de notas en Obsidian vía GitHub API
