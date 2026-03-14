@@ -14,9 +14,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
-GITHUB_REPO = os.environ["GITHUB_REPO"]
+GITHUB_VAULT_REPO = os.environ["GITHUB_VAULT_REPO"]
 ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
-TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
+TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 
 GITHUB_API = "https://api.github.com"
@@ -28,7 +28,7 @@ _GITHUB_HEADERS = {
 
 def _send_telegram(message: str) -> None:
     requests.post(
-        f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+        f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage",
         json={"chat_id": TELEGRAM_CHAT_ID, "text": message},
     )
 
@@ -50,12 +50,12 @@ def _parse_frontmatter(content: str) -> tuple[dict, str]:
 
 
 def _list_markdown_files() -> list[str]:
-    repo_r = requests.get(f"{GITHUB_API}/repos/{GITHUB_REPO}", headers=_GITHUB_HEADERS)
+    repo_r = requests.get(f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}", headers=_GITHUB_HEADERS)
     repo_r.raise_for_status()
     default_branch = repo_r.json()["default_branch"]
 
     tree_r = requests.get(
-        f"{GITHUB_API}/repos/{GITHUB_REPO}/git/trees/{default_branch}?recursive=1",
+        f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/git/trees/{default_branch}?recursive=1",
         headers=_GITHUB_HEADERS,
     )
     tree_r.raise_for_status()
@@ -68,7 +68,7 @@ def _list_markdown_files() -> list[str]:
 
 def _fetch_file(path: str) -> str:
     r = requests.get(
-        f"{GITHUB_API}/repos/{GITHUB_REPO}/contents/{path}",
+        f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{path}",
         headers=_GITHUB_HEADERS,
     )
     r.raise_for_status()
@@ -156,13 +156,13 @@ def _save_draft(draft: str, year: int, week: int, article_count: int) -> str:
     payload = {"message": f"add: newsletter {year}-W{week:02d}", "content": encoded}
 
     existing = requests.get(
-        f"{GITHUB_API}/repos/{GITHUB_REPO}/contents/{path}", headers=_GITHUB_HEADERS
+        f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{path}", headers=_GITHUB_HEADERS
     )
     if existing.status_code == 200:
         payload["sha"] = existing.json()["sha"]
 
     requests.put(
-        f"{GITHUB_API}/repos/{GITHUB_REPO}/contents/{path}",
+        f"{GITHUB_API}/repos/{GITHUB_VAULT_REPO}/contents/{path}",
         headers=_GITHUB_HEADERS,
         json=payload,
     ).raise_for_status()
