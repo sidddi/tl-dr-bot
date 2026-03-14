@@ -155,7 +155,7 @@ Abre Telegram, busca tu bot y mándale cualquier URL.
 
 ## Newsletter semanal
 
-`newsletter.py` genera un borrador de newsletter para LinkedIn a partir de los artículos que hayas marcado como leídos (`status: llegit`) en la última semana.
+`newsletter.py` genera un borrador de newsletter para LinkedIn a partir de los artículos que hayas marcado como leídos en la última semana.
 
 ```bash
 python newsletter.py
@@ -163,18 +163,23 @@ python newsletter.py
 
 **Qué hace:**
 1. Lee todos los archivos `.md` del repo de Obsidian vía GitHub API
-2. Filtra los que tienen `status: llegit` y `date` de los últimos 7 días
-3. Agrupa los artículos por categoría con sus resúmenes
+2. Filtra los que tienen `status: llegit` (o `status: read`) y `date` de los últimos 7 días
+3. Agrupa los artículos por categoría con sus resúmenes (acepta nombres en español e inglés)
 4. Llama a Claude para generar el borrador en español, tono natural, sin frases de IA
-5. Guarda el borrador en `Newsletter/Newsletter-{YYYY}-W{WW}.md` en el vault
+5. Guarda el borrador en `{GITHUB_VAULT_BASE_PATH}/Newsletter/Newsletter-{YYYY}-W{WW}.md`
 6. Te notifica por Telegram con el nombre del archivo generado
 
 Si no has leído ningún artículo esta semana, te avisa por Telegram sin generar nada.
 
-**Variables de entorno necesarias** (además de las del bot):
-- `GITHUB_REPO` — repo en formato `usuario/repo`
-- `TELEGRAM_BOT_TOKEN` — token del bot de Telegram
-- `TELEGRAM_CHAT_ID` — tu chat ID de Telegram
+Se ejecuta automáticamente cada lunes a las 08:00 UTC vía Railway cron.
+
+**Variables de entorno necesarias** (las mismas que el bot, más `TELEGRAM_CHAT_ID`):
+- `GITHUB_TOKEN` — fine-grained token con permiso Contents sobre el vault
+- `GITHUB_VAULT_REPO` — repo en formato `usuario/repo`
+- `GITHUB_VAULT_BASE_PATH` — carpeta base dentro del repo (ej: `TL-DR`)
+- `ANTHROPIC_API_KEY` — API key de Anthropic
+- `TELEGRAM_TOKEN` — token del bot de Telegram
+- `TELEGRAM_CHAT_ID` — tu chat ID de Telegram (consíguelo enviando cualquier mensaje al bot y consultando `https://api.telegram.org/bot<TOKEN>/getUpdates`)
 
 ## Estructura del proyecto
 
@@ -200,6 +205,7 @@ GITHUB_VAULT_BASE_PATH/
 ├── Producto/
 ├── Startups/
 ├── Basura/           ← siempre presente para artículos descartados
+├── Newsletter/       ← borradores semanales generados por newsletter.py
 ├── TL-DR Index.md    ← índice Dataview generado por setup.py
 └── seen_urls.txt     ← registro de URLs ya procesadas (deduplicación)
 ```
