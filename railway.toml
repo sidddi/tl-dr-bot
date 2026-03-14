@@ -4,3 +4,8 @@ builder = "nixpacks"
 [deploy]
 startCommand = "python main.py"
 restartPolicyType = "on_failure"
+
+[[crons]]
+name = "newsletter"
+schedule = "0 8 * * 1"
+command = "python newsletter.py"
