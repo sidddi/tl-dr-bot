@@ -20,9 +20,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
 
 
-async def myid(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text(str(update.effective_chat.id))
-
 
 async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     url = update.message.text.strip()
@@ -78,7 +75,7 @@ async def handle_url(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 def main() -> None:
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("myid", myid))
+
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_url))
     logger.info("Bot started.")
     app.run_polling()
