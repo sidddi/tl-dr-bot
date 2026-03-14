@@ -129,7 +129,7 @@ def _build_prompt(articles: list[dict]) -> str:
 def _generate_draft(articles: list[dict]) -> str:
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
     message = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-6",
         max_tokens=1000,
         system=(
             "You are a LinkedIn content creator. Write in a natural, human tone. "
